@@ -50,71 +50,66 @@ const Room = (props) => {
     useEffect(() => {
         socketRef.current = io("https://the-wolf-of-mafia.herokuapp.com/");
         navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: true }).then(stream => {
-           userVideo.current.srcObject = stream;
-           
-           //joined the room
-           socketRef.current.emit("join room");
+            userVideo.current.srcObject = stream;
+            socketRef.current.emit("join room", roomID);
+            socketRef.current.on("all users", users => {
+                const peers = [];
+                users.forEach(userID => {
+                    const peer = createPeer(userID, socketRef.current.id, stream);
+                    peersRef.current.push({
+                        peerID: userID,
+                        peer,
+                    })
+                    peers.push(peer);
+                })
+                setPeers(peers);
+            })
 
-           //get all the users that are in the room
-           socketRef.current.on("all users", users => {
-               //new user so he has no peers
-               const peers = [];
-               users.forEach(userID => {
-                   //for each one of the users in the room create a peer
-                   const peer = createPeer(userID, socketRef.current.id, stream);
-                   peersRef.current.push({
-                       peerID: userID,
-                       peer,
-                   })
-                   peers.push(peer);
-               });
-               setPeers(peers)
-           })
+            socketRef.current.on("user joined", payload => {
+                const peer = addPeer(payload.signal, payload.callerID, stream);
+                peersRef.current.push({
+                    peerID: payload.callerID,
+                    peer,
+                })
 
-           //tell other people that someone new joined
-           socketRef.current.on("user joined", payload => {
-               const peer = addPeer(payload.signal, payload.callerID, stream);
-               peersRef.current.push({
-                   peerID: payload.callerID, 
-                   stream,
-               });
-               setPeers(users => [...users, peer]); 
-           });
-           socketRef.current.on("receiving returned signal", payload => {
-               const item = peersRef.current.find(p => p.peerID === payload.id);
-               item.peer.signal(payload.signal)
-           })
+                setPeers(users => [...users, peer]);
+            });
+
+            socketRef.current.on("receiving returned signal", payload => {
+                const item = peersRef.current.find(p => p.peerID === payload.id);
+                item.peer.signal(payload.signal);
+            });
         })
     }, []);
 
     function createPeer(userToSignal, callerID, stream) {
         const peer = new Peer({
-            //initiator tells/signals the room that im here
-            initiator: true, 
+            initiator: true,
             trickle: false,
             stream,
         });
 
         peer.on("signal", signal => {
-            socketRef.current.emit("sending signal", {userToSignal, callerID, signal})
+            socketRef.current.emit("sending signal", { userToSignal, callerID, signal })
         })
 
         return peer;
     }
 
     function addPeer(incomingSignal, callerID, stream) {
-       const peer = new Peer({
-           initiator: false,
-           trickle: false, 
-           stream
-       })
+        const peer = new Peer({
+            initiator: false,
+            trickle: false,
+            stream,
+        })
 
-       peer.on("signal", signal => {
-           socketRef.current.emit("returning signal", {signal, callerID})
-       })
+        peer.on("signal", signal => {
+            socketRef.current.emit("returning signal", { signal, callerID })
+        })
 
-       peer.signal(incomingSignal);
-       return peer;
+        peer.signal(incomingSignal);
+
+        return peer;
     }
 
     return (
