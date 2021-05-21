@@ -5,11 +5,12 @@
   "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
-    "dotenv": "^8.6.0",
+    "dotenv": "^9.0.2",
     "express": "^4.17.1",
     "socket.io": "^2.4.1"
   },
   "scripts": {
-    "start": "PROD=true node server.js"
+    "start": "PROD=true node server.js",
+    "postinstall": "cd ./client && yarn"
   }
 }

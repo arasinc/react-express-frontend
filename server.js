@@ -3,20 +3,8 @@ const express = require("express");
 const http = require("http");
 const app = express();
 const server = http.createServer(app);
-
-const cors = require("cors"); 
-
-const io = require("socket.io")(server, {
-    cors: {
-        origin: "*",
-        method: ["GET", "POST"]
-    }
-});
-
-app.use(cors());
-
-
-
+const socket = require("socket.io");
+const io = socket(server);
 
 const users = {};
 
@@ -59,6 +47,12 @@ io.on('connection', socket => {
 
 });
 
+if (process.env.PROD){
+    app.use(express.static(path.join(__dirname, './client/build')));
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, './client/build/index.html'));
+    })
+}
 server.listen(process.env.PORT || 8000, () => console.log('server is running on port 8000'));
 
 
