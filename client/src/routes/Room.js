@@ -3,6 +3,9 @@ import io from "socket.io-client";
 import Peer from "simple-peer";
 import styled from "styled-components";
 
+// const socket = io("https://the-wolf-of-mafia.herokuapp.com/");
+const socket = io("http://localhost:8000");
+
 const Container = styled.div`
     padding: 20px;
     display: flex;
@@ -45,7 +48,7 @@ const Room = (props) => {
     const roomID = props.match.params.roomID;
 
     useEffect(() => {
-        socketRef.current = io.connect("/");
+        socketRef.current = io("http://localhost:8000");
         navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: true }).then(stream => {
            userVideo.current.srcObject = stream;
            
