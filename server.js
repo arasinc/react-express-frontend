@@ -6,16 +6,38 @@ const server = http.createServer(app);
 const socket = require("socket.io");
 const io = socket(server);
 const path = require("path");
+const cors = require('cors');
+
+// middleware needed to parse req.body
+app.use(express.json());
+app.use(express.urlencoded());
 
 const users = {};
-
 const socketToRoom = {};
+
+//defualt room capacity to 4
+var roomCapacity = 4;
+
+//use cors to allow cross origin resource sharing
+app.use(
+    cors({
+      origin: 'http://localhost:3000',
+    })
+  );
+
+app.post("/getData", function(req, res) {
+    // console.log("type of capacity is: ", typeof req.body.room)
+    console.log("type is ", typeof req.body.roomCapacity)
+    roomCapacity = parseInt(req.body.roomCapacity);
+
+})
 
 io.on('connection', socket => {
     socket.on("join room", roomID => {
         if (users[roomID]) {
             const length = users[roomID].length;
-            if (length === 4) {
+            console.log("room cap is: ", roomCapacity)
+            if (length === roomCapacity) {
                 socket.emit("room full");
                 return;
             }
@@ -23,6 +45,7 @@ io.on('connection', socket => {
         } else {
             users[roomID] = [socket.id];
         }
+        
         socketToRoom[socket.id] = roomID;
         const usersInThisRoom = users[roomID].filter(id => id !== socket.id);
 
@@ -54,6 +77,6 @@ if (process.env.PROD){
         res.sendFile(path.join(__dirname, './client/build/index.html'));
     })
 }
+
+
 server.listen(process.env.PORT || 8000, () => console.log('server is running on port 8000'));
-
-
