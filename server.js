@@ -26,17 +26,18 @@ app.use(
   );
 
 app.post("/getData", function(req, res) {
-    // console.log("type of capacity is: ", typeof req.body.room)
-    console.log("type is ", typeof req.body.roomCapacity)
     roomCapacity = parseInt(req.body.roomCapacity);
 
+})
+
+app.get("/getUsers", function(req, res) {
+    roomCapacity = parseInt(req.body.roomCapacity);
 })
 
 io.on('connection', socket => {
     socket.on("join room", roomID => {
         if (users[roomID]) {
             const length = users[roomID].length;
-            console.log("room cap is: ", roomCapacity)
             if (length === roomCapacity) {
                 socket.emit("room full");
                 return;
@@ -67,6 +68,7 @@ io.on('connection', socket => {
             room = room.filter(id => id !== socket.id);
             users[roomID] = room;
         }
+
     });
 
 });

@@ -29,7 +29,7 @@ const CreateRoom = (props) => {
                 size="50" 
                 onChange={(e) => {
                     setRoomCapacity(e.target.value); 
-                    console.log("e.target.value is: ", roomCapacity);
+                    console.log("e.target.value is: ", e.target.value);
                 }}/>
             </div>
             
