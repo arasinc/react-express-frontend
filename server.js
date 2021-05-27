@@ -30,6 +30,10 @@ app.post("/getData", function(req, res) {
 
 })
 
+app.get("/getUsers", function(req, res) {
+    roomCapacity = parseInt(req.body.roomCapacity);
+})
+
 io.on('connection', socket => {
     socket.on("join room", roomID => {
         if (users[roomID]) {

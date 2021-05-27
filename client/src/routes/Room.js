@@ -40,10 +40,12 @@ const videoConstraints = {
 
 const Room = (props) => {
     const [peers, setPeers] = useState([]);
+    const [onOrOff, setOnOrOFF] = useState("off");
     const socketRef = useRef();
     const userVideo = useRef();
     const peersRef = useRef([]);
     const roomID = props.match.params.roomID;
+    
     // const [stream, setStream] = useState();
     
     useEffect(() => {
@@ -85,28 +87,14 @@ const Room = (props) => {
 
     }, []);
 
-    function turnOffYourVideo() {
+    function turnOffOROnYourVideo() {
         console.log("video turned off");
-
+        onOrOff === "on"?setOnOrOFF("off"):setOnOrOFF("on");
         userVideo.current.srcObject.getTracks().forEach(t => t.enabled = !t.enabled);
 
     }
     function turnOffAllVideos(){
         console.log("turnoff all videos")
-    }
-
-    function turnOnallVideos(){
-
-        console.log("Peers are: ", peers);
-        console.log("socketRef is: ", socketRef);
-        console.log("userVideo is: ", userVideo);
-        console.log("peersRef is: ", peersRef);
-        console.log("the stream id is:", )
-
-    }
-
-    function turnOnYourVideo(){
-        console.log("turn on your video")
     }
 
     function createPeer(userToSignal, callerID, stream) {
@@ -152,9 +140,8 @@ const Room = (props) => {
             })}
         </Container>
 
-        <button onClick={turnOffYourVideo}> Turn off your video </button> <br/>
+        <button onClick={turnOffOROnYourVideo}> Turn {onOrOff} your video </button> <br/>
         <button onClick={turnOffAllVideos}> Turn off all Videos </button> <br/>
-        <button onClick={turnOnallVideos}> Turn On Videos </button><br/>
         </div>
     );
 };
