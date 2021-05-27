@@ -6,20 +6,21 @@ import styled from "styled-components";
 const Container = styled.div`
     padding: 20px;
     display: flex;
-    height: 100vh;
+    height: 300px;
     width: 90%;
     margin: auto;
     flex-wrap: wrap;
 `;
 
 const StyledVideo = styled.video`
-    height: 40%;
-    width: 50%;
+    height: 200px;
+    width: 300px;
+    padding: 20px;
 `;
 
 const Video = (props) => {
     const ref = useRef();
-
+    console.log("props are: ", props)
     useEffect(() => {
         props.peer.on("stream", stream => {
             ref.current.srcObject = stream;
@@ -43,10 +44,14 @@ const Room = (props) => {
     const userVideo = useRef();
     const peersRef = useRef([]);
     const roomID = props.match.params.roomID;
-
+    // const [stream, setStream] = useState();
+    
     useEffect(() => {
+
         socketRef.current = io.connect("/");
         navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: true }).then(stream => {
+            console.log("stream is: ", stream);
+            // setStream(str)
             userVideo.current.srcObject = stream;
             socketRef.current.emit("join room", roomID);
             socketRef.current.on("all users", users => {
@@ -80,6 +85,7 @@ const Room = (props) => {
     }, []);
 
     function createPeer(userToSignal, callerID, stream) {
+        console.log("createPeer userToSignal: " + userToSignal + " callerID: " + callerID + " stream: " + stream)
         const peer = new Peer({
             initiator: true,
             trickle: false,
@@ -94,6 +100,7 @@ const Room = (props) => {
     }
 
     function addPeer(incomingSignal, callerID, stream) {
+        console.log("addPeer incomingSignal: " + incomingSignal + " callerID: " + callerID + " stream: " + stream)
         const peer = new Peer({
             initiator: false,
             trickle: false,
@@ -109,7 +116,20 @@ const Room = (props) => {
         return peer;
     }
 
+    function turnOffVideos(){
+        userVideo.current.srcObject = null;
+        console.log("turned off")
+
+    }
+
+    function turnOnVideos(){
+        userVideo.current.srcObject = null;
+        console.log("turned on")
+
+    }
+
     return (
+        <div>
         <Container>
             <StyledVideo muted ref={userVideo} autoPlay playsInline />
             {peers.map((peer, index) => {
@@ -118,6 +138,10 @@ const Room = (props) => {
                 );
             })}
         </Container>
+
+        <button onClick={turnOffVideos}> Turn off Videos </button>
+        <button onClick={turnOnVideos}> Turn On Videos </button>
+        </div>
     );
 };
 

@@ -45,6 +45,7 @@ io.on('connection', socket => {
         } else {
             users[roomID] = [socket.id];
         }
+        
         socketToRoom[socket.id] = roomID;
         const usersInThisRoom = users[roomID].filter(id => id !== socket.id);
 
@@ -79,5 +80,3 @@ if (process.env.PROD){
 
 
 server.listen(process.env.PORT || 8000, () => console.log('server is running on port 8000'));
-
-

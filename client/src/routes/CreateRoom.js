@@ -21,13 +21,10 @@ const CreateRoom = (props) => {
         });
     }
 
-    
-    
 
     return (
         <>
             <div>
-                
                 <input placeholder="Enter the number of people you want in the room" 
                 size="50" 
                 onChange={(e) => {
