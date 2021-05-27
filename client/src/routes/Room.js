@@ -82,10 +82,34 @@ const Room = (props) => {
                 item.peer.signal(payload.signal);
             });
         })
+
     }, []);
 
+    function turnOffYourVideo() {
+        console.log("video turned off");
+
+        userVideo.current.srcObject.getTracks().forEach(t => t.enabled = !t.enabled);
+
+    }
+    function turnOffAllVideos(){
+        console.log("turnoff all videos")
+    }
+
+    function turnOnallVideos(){
+
+        console.log("Peers are: ", peers);
+        console.log("socketRef is: ", socketRef);
+        console.log("userVideo is: ", userVideo);
+        console.log("peersRef is: ", peersRef);
+        console.log("the stream id is:", )
+
+    }
+
+    function turnOnYourVideo(){
+        console.log("turn on your video")
+    }
+
     function createPeer(userToSignal, callerID, stream) {
-        console.log("createPeer userToSignal: " + userToSignal + " callerID: " + callerID + " stream: " + stream)
         const peer = new Peer({
             initiator: true,
             trickle: false,
@@ -100,7 +124,6 @@ const Room = (props) => {
     }
 
     function addPeer(incomingSignal, callerID, stream) {
-        console.log("addPeer incomingSignal: " + incomingSignal + " callerID: " + callerID + " stream: " + stream)
         const peer = new Peer({
             initiator: false,
             trickle: false,
@@ -116,17 +139,7 @@ const Room = (props) => {
         return peer;
     }
 
-    function turnOffVideos(){
-        userVideo.current.srcObject = null;
-        console.log("turned off")
-
-    }
-
-    function turnOnVideos(){
-        userVideo.current.srcObject = null;
-        console.log("turned on")
-
-    }
+    
 
     return (
         <div>
@@ -139,8 +152,9 @@ const Room = (props) => {
             })}
         </Container>
 
-        <button onClick={turnOffVideos}> Turn off Videos </button>
-        <button onClick={turnOnVideos}> Turn On Videos </button>
+        <button onClick={turnOffYourVideo}> Turn off your video </button> <br/>
+        <button onClick={turnOffAllVideos}> Turn off all Videos </button> <br/>
+        <button onClick={turnOnallVideos}> Turn On Videos </button><br/>
         </div>
     );
 };
