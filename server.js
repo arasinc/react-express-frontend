@@ -7,6 +7,7 @@ const socket = require("socket.io");
 const io = socket(server);
 const path = require("path");
 const cors = require('cors');
+const { Socket } = require('net');
 
 // middleware needed to parse req.body
 app.use(express.json());
@@ -14,6 +15,7 @@ app.use(express.urlencoded());
 
 const users = {};
 const socketToRoom = {};
+const pausedUsers = {};
 
 //defualt room capacity to 4
 var roomCapacity = 4;
@@ -53,6 +55,7 @@ io.on('connection', socket => {
         socket.emit("all users", usersInThisRoom);
     });
 
+
     socket.on("sending signal", payload => {
         io.to(payload.userToSignal).emit('user joined', { signal: payload.signal, callerID: payload.callerID });
     });
@@ -68,9 +71,11 @@ io.on('connection', socket => {
             room = room.filter(id => id !== socket.id);
             users[roomID] = room;
         }
-
     });
 
+    socket.on('pause', payload => {
+        io.emit('pasing videos', payload)
+    })
 });
 
 if (process.env.PROD){
@@ -79,6 +84,4 @@ if (process.env.PROD){
         res.sendFile(path.join(__dirname, './client/build/index.html'));
     })
 }
-
-
 server.listen(process.env.PORT || 8000, () => console.log('server is running on port 8000'));
