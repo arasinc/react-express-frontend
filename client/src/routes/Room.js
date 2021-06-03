@@ -38,13 +38,30 @@ const videoConstraints = {
 };
 
 const Room = (props) => {
+    const normalTalkCounter = 10;
+    const defendingCounter = 120;
     const [peers, setPeers] = useState([]);
     const [onOrOff, setOnOrOFF] = useState("off");
     const [videoOffOrOn, setVideoOffOrOn] = useState(true);
+    const [counter, setCounter] = useState(normalTalkCounter);
+    const [startTimer, setStartTimer] = useState(false);
     const socketRef = useRef();
     const userVideo = useRef();
     const peersRef = useRef([]);
     const roomID = props.match.params.roomID;
+    
+    //counter goes here
+    useEffect(() => {
+        if(startTimer){
+            if ( counter > 0 ){
+                setTimeout(() => setCounter(counter - 1), 1000)
+            }
+            else {
+                setCounter(normalTalkCounter)
+                socketRef.current.emit('pause', !videoOffOrOn);
+            }
+        }
+      }, [counter, startTimer]);
     
     useEffect(() => {
 
@@ -92,6 +109,10 @@ const Room = (props) => {
         }
     }, [videoOffOrOn])
     
+    function startTimerFunction () {
+        setStartTimer(!startTimer);
+    }
+
     function turnOffOROnYourVideo() {
         console.log("video turned off");
         onOrOff === "on"?setOnOrOFF("off"):setOnOrOFF("on");
@@ -99,7 +120,7 @@ const Room = (props) => {
     }
 
     function turnOffAllVideos() {
-        socketRef.current.emit('pause', !videoOffOrOn);
+        socketRef.current.emit('pause', false);
         console.log("turnoff all videos")
     }
 
@@ -135,6 +156,7 @@ const Room = (props) => {
 
     return (
         <div>
+        <div>Countdown: {counter}</div>
         <Container>
             <StyledVideo muted ref={userVideo} autoPlay playsInline />
             {peers.map((peer, index) => {
@@ -143,9 +165,10 @@ const Room = (props) => {
                 );
             })}
         </Container>
-
+        <button onClick={startTimerFunction}> Start/Stop timer</button><br/>
         <button onClick={turnOffOROnYourVideo}> Turn {onOrOff} your video </button> <br/>
         <button onClick={turnOffAllVideos}> Turn off all Videos </button> <br/>
+        
         </div>
     );
 };
