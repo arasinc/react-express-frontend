@@ -10,3 +10,7 @@ $ nodemon server.js
 $ cd client
 $ yarn start
 ```
+
+### Applications to download
+1. visual studio code
+2. git bash for windows users
