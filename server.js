@@ -19,6 +19,7 @@ const pausedUsers = {};
 
 //defualt room capacity to 4
 var roomCapacity = 4;
+var timer_duration = 0;
 
 //use cors to allow cross origin resource sharing
 app.use(
@@ -74,9 +75,28 @@ io.on('connection', socket => {
     });
 
     socket.on('pause', payload => {
-        io.emit('pasing videos', payload)
+        io.emit('pausing videos', payload)
+    })
+
+    socket.on('timer', payload => {
+        timer_duration = payload.timer
+        startTimer(payload)
+        io.emit('start timer', payload)
     })
 });
+
+function startTimer(payload){
+    var countD_down_timer = setInterval(function(){
+        if (timer_duration <= 0) {
+            // clearInterval(countD_down_timer)
+            timer_duration = payload.timer
+            console.log("reset")
+        }else{
+            console.log("timer is: ", timer_duration);
+            timer_duration -= 1;
+        }
+    }, 1000);
+}
 
 if (process.env.PROD){
     app.use(express.static(path.join(__dirname, './client/build')));
