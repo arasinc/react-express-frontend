@@ -38,10 +38,9 @@ const videoConstraints = {
 };
 
 const Room = (props) => {
-    const normalTalkCounter = 3;
+    const normalTalkCounter = 5;
     // const defendingCounter = 120;
     const [peers, setPeers] = useState([]);
-    const [onOrOff, setOnOrOFF] = useState("off");
     const [videoOffOrOn, setVideoOffOrOn] = useState(true);
     const [counter, setCounter] = useState(normalTalkCounter);
     const [startTimer, setStartTimer] = useState(false);
@@ -84,53 +83,45 @@ const Room = (props) => {
                 const item = peersRef.current.find(p => p.peerID === payload.id);
                 item.peer.signal(payload.signal);
             });
-            socketRef.current.on('pausing videos', payload => {
-                setVideoOffOrOn(payload)
+            socketRef.current.on('start timer', payload => {
+                console.log("the socketref current is: " , socketRef.current.id)
+                console.log("the payload id is: ",payload.user_to_speak )
+                if(socketRef.current.id === payload.user_to_speak || payload.user_to_speak === "end"){
+                    setVideoOffOrOn(false)
+                }
+                else{
+                    setVideoOffOrOn(true)
+                }
             })
-            // socketRef.current.on('start timer', payload => {
-            //     console.log("the timer payload is: ", payload)
-            //     setCounter(payload.timer)
-            // })
         });
         
     }, []);
     useEffect(()=> {
         if(userVideo.current.srcObject !== null){
-            userVideo.current.srcObject.getTracks().forEach(t => t.enabled = videoOffOrOn);
+            console.log("the track is: ", userVideo.current.srcObject.getTracks())
+            userVideo.current.srcObject.getTracks()[1].enabled = videoOffOrOn;
         }
     }, [videoOffOrOn])
     
-    // Timer 
-    useEffect(() => {
-        if(startTimer){
-            if ( counter > 0 ){
-                setTimeout(() => setCounter(counter - 1), 1000)
-            }
-            else {
-                setCounter(normalTalkCounter)
-                socketRef.current.emit('pause', !videoOffOrOn);
-            }
-        }
-      }, [counter, startTimer]);
+    // commenting the frontend timer for now. maybe will need it later
+    // // Timer 
+    // useEffect(() => {
+    //     if(startTimer){
+    //         if ( counter > 0 ){
+    //             setTimeout(() => setCounter(counter - 1), 1000)
+    //         }
+    //         else {
+    //             setCounter(normalTalkCounter)
+    //         }
+    //     }
+    //   }, [counter, startTimer]);
+
     function startTimerFunction () {
 
-        var obj = {timer: normalTalkCounter}
+        var obj = {timer: normalTalkCounter, roomId: roomID}
         socketRef.current.emit('timer', obj);
         setCounter(normalTalkCounter)
         setStartTimer(true)
-    }
-
-    function turnOffOROnYourVideo() {
-        console.log("video turned off");
-        onOrOff === "on"?setOnOrOFF("off"):setOnOrOFF("on");
-        setVideoOffOrOn(false);
-    }
-
-    function turnOffAllVideos() {
-        var obj = {id:socketRef.current.id , vid: false}
-        socketRef.current.emit('pause', obj);
-        console.log("turnoff all videos")
-        // console.log("socketref current is: " , socketRef.current)
     }
 
     function createPeer(userToSignal, callerID, stream) {
@@ -174,9 +165,8 @@ const Room = (props) => {
                 );
             })}
         </Container>
-        <button onClick={startTimerFunction}> Start/Stop timer</button><br/>
-        <button onClick={turnOffOROnYourVideo}> Turn {onOrOff} your video </button> <br/>
-        <button onClick={turnOffAllVideos}> Turn off all Videos </button> <br/>
+        <p>Wait for eveyone to join the room before starting the game</p>
+        <button onClick={startTimerFunction}> Start The Game</button><br/>
         
         </div>
     );

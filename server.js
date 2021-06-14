@@ -80,19 +80,28 @@ io.on('connection', socket => {
 
     socket.on('timer', payload => {
         timer_duration = payload.timer
-        startTimer(payload)
-        io.emit('start timer', payload)
+        startTimer(payload, io)
+        
     })
 });
 
-function startTimer(payload){
+function startTimer(payload, io){
+    var temp_users = users[payload.roomId]
     var countD_down_timer = setInterval(function(){
         if (timer_duration <= 0) {
-            // clearInterval(countD_down_timer)
-            timer_duration = payload.timer
-            console.log("reset")
+            console.log("user is: ", temp_users)
+            if(temp_users.length <= 0 ){
+                io.emit("start timer", {user_to_speak: "end"})
+                clearInterval(countD_down_timer)
+                
+            }
+            else{
+                var temp_user = temp_users.pop()
+                timer_duration = payload.timer
+                io.emit("start timer", {user_to_speak: temp_user})
+            }
+            
         }else{
-            console.log("timer is: ", timer_duration);
             timer_duration -= 1;
         }
     }, 1000);
