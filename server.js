@@ -8,19 +8,22 @@ const io = socket(server);
 const path = require("path");
 const cors = require('cors');
 const { Socket } = require('net');
+const e = require('express');
 
 // middleware needed to parse req.body
 app.use(express.json());
 app.use(express.urlencoded());
 
-const users = {};
+const users = [];
+const users_in_each_room = {}
 const socketToRoom = {};
-const pausedUsers = {};
 
 //defualt room capacity to 4
 var roomCapacity = 4;
 var timer_duration = 0;
 
+// Number each user when they enter the room 
+var user_number = 1;
 //use cors to allow cross origin resource sharing
 app.use(
     cors({
@@ -39,26 +42,44 @@ app.get("/getUsers", function(req, res) {
 
 io.on('connection', socket => {
     socket.on("join room", roomID => {
-        if (users[roomID]) {
-            const length = users[roomID].length;
+        if (users_in_each_room[roomID]) {
+            const length = users_in_each_room[roomID].length;
             if (length === roomCapacity) {
                 socket.emit("room full");
                 return;
             }
-            users[roomID].push(socket.id);
+            users_in_each_room[roomID].push(socket.id);
+            var user = {id : socket.id, roomId: roomID, number: user_number};
+            users.push(user)
+            user_number += 1; 
         } else {
-            users[roomID] = [socket.id];
+            users_in_each_room[roomID] = [socket.id];
+            // Add player number
+            user_number = 1;
+            var user = {id : socket.id, roomId: roomID, number: user_number};
+            users.push(user)
+            user_number += 1; 
         }
         
         socketToRoom[socket.id] = roomID;
-        const usersInThisRoom = users[roomID].filter(id => id !== socket.id);
-
-        socket.emit("all users", usersInThisRoom);
+        var send_users = users.filter(function(el){
+            return el.roomId === roomID;
+        })
+        console.log("users in room after: ", send_users)
+        socket.emit("all users", send_users);
     });
 
 
     socket.on("sending signal", payload => {
-        io.to(payload.userToSignal).emit('user joined', { signal: payload.signal, callerID: payload.callerID });
+        console.log("the caller id is: ", payload.callerID)
+        var temp_user = {};
+        for(const user in users){
+
+            if(users[user].id === payload.callerID){
+                temp_user = users[user]
+            }
+        }
+        io.to(payload.userToSignal).emit('user joined', { signal: payload.signal, callerID: payload.callerID, user: temp_user});
     });
 
     socket.on("returning signal", payload => {
@@ -67,10 +88,10 @@ io.on('connection', socket => {
 
     socket.on('disconnect', () => {
         const roomID = socketToRoom[socket.id];
-        let room = users[roomID];
+        let room = users_in_each_room[roomID];
         if (room) {
             room = room.filter(id => id !== socket.id);
-            users[roomID] = room;
+            users_in_each_room[roomID] = room;
         }
     });
 
@@ -81,12 +102,13 @@ io.on('connection', socket => {
     socket.on('timer', payload => {
         timer_duration = payload.timer
         startTimer(payload, io)
+        console.log("useres are: ", users)
         
     })
 });
 
 function startTimer(payload, io){
-    var temp_users = users[payload.roomId]
+    var temp_users = users_in_each_room[payload.roomId]
     var countD_down_timer = setInterval(function(){
         if (timer_duration <= 0) {
             console.log("user is: ", temp_users)
