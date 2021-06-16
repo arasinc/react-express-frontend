@@ -22,7 +22,7 @@ const StyledVideo = styled.video`
 const Video = (props) => {
     console.log("props aree: ", props)
     const ref = useRef();
-    const user_number = props.number
+    const user = props.user
     useEffect(() => {
         props.peer.on("stream", stream => {
             ref.current.srcObject = stream;
@@ -34,7 +34,7 @@ const Video = (props) => {
         <>
         <div>
         <StyledVideo playsInline autoPlay ref={ref} />
-        {user_number}
+        {user.number}
         </div>
         
         </>
@@ -65,7 +65,7 @@ const Room = (props) => {
     useEffect(() => {
 
         socketRef.current = io.connect("/");
-        navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: false }).then(stream => {
+        navigator.mediaDevices.getUserMedia({ video: videoConstraints, audio: true }).then(stream => {
             userVideo.current.srcObject = stream;
             socketRef.current.emit("join room", roomID);
             socketRef.current.on("all users", users => {
@@ -80,9 +80,10 @@ const Room = (props) => {
                         peer,
                     })
                     //{peers: peers, user: user}
-                    peers.push({peers: peers, user: user});
+                    peers.push({peer: peer, user: user});
                   }
                 })
+                console.log("all user peer is: ", peers)
                 setPeers(peers);
             });
 
@@ -176,9 +177,9 @@ const Room = (props) => {
         <Container>
             <StyledVideo muted ref={userVideo} autoPlay playsInline />
             {peers.map((peer, index) => {
-            
+                console.log("peers before going are " , peer)
                 return (
-                    <Video key={index} peer={peer}  />
+                    <Video key={index} peer={peer.peer} user={peer.user}  />
                 );
             })}
         </Container>
