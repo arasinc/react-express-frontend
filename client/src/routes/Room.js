@@ -20,15 +20,24 @@ const StyledVideo = styled.video`
 `;
 
 const Video = (props) => {
+    console.log("props aree: ", props)
     const ref = useRef();
+    const user = props.user
     useEffect(() => {
         props.peer.on("stream", stream => {
             ref.current.srcObject = stream;
+            
         })
     }, []);
 
     return (
+        <>
+        <div>
         <StyledVideo playsInline autoPlay ref={ref} />
+        {user.number}
+        </div>
+        
+        </>
     );
 }
 
@@ -44,11 +53,14 @@ const Room = (props) => {
     const [videoOffOrOn, setVideoOffOrOn] = useState(true);
     const [counter, setCounter] = useState(normalTalkCounter);
     const [startTimer, setStartTimer] = useState(false);
+    const [userNumber, setUserNumber] = useState();
+    const userNum = useRef();
     const socketRef = useRef();
     const userVideo = useRef();
     const peersRef = useRef([]);
     const roomID = props.match.params.roomID;
-    
+    var users = []
+
     
     useEffect(() => {
 
@@ -58,14 +70,20 @@ const Room = (props) => {
             socketRef.current.emit("join room", roomID);
             socketRef.current.on("all users", users => {
                 const peers = [];
-                users.forEach(userID => {
-                    const peer = createPeer(userID, socketRef.current.id, stream);
+                users.forEach(user => {
+                    setUserNumber(user.number)
+                    userNum.current = user.number
+                    if(user.id !== socketRef.current.id){
+                    const peer = createPeer(user.id, socketRef.current.id, stream, user);
                     peersRef.current.push({
-                        peerID: userID,
+                        peerID: user.id,
                         peer,
                     })
-                    peers.push(peer);
+                    //{peers: peers, user: user}
+                    peers.push({peer: peer, user: user});
+                  }
                 })
+                console.log("all user peer is: ", peers)
                 setPeers(peers);
             });
 
@@ -75,8 +93,8 @@ const Room = (props) => {
                     peerID: payload.callerID,
                     peer,
                 });
-
-                setPeers(users => [...users, peer]);
+                console.log("user is: ", payload.user)
+                setPeers(prePeer => [...prePeer, {peer:peer, user:payload.user}]);
             });
 
             socketRef.current.on("receiving returned signal", payload => {
@@ -98,7 +116,6 @@ const Room = (props) => {
     }, []);
     useEffect(()=> {
         if(userVideo.current.srcObject !== null){
-            console.log("the track is: ", userVideo.current.srcObject.getTracks())
             userVideo.current.srcObject.getTracks()[1].enabled = videoOffOrOn;
         }
     }, [videoOffOrOn])
@@ -142,7 +159,7 @@ const Room = (props) => {
         const peer = new Peer({
             initiator: false,
             trickle: false,
-            stream,
+            stream
         })
 
         peer.on("signal", signal => {
@@ -156,17 +173,23 @@ const Room = (props) => {
 
     return (
         <div>
-        <div>Countdown: {counter}</div>
+        <div>
         <Container>
             <StyledVideo muted ref={userVideo} autoPlay playsInline />
             {peers.map((peer, index) => {
+                console.log("peers before going are " , peer)
                 return (
-                    <Video key={index} peer={peer} />
+                    <Video key={index} peer={peer.peer} user={peer.user}  />
                 );
             })}
         </Container>
+        <p> number is {userNumber}</p>
+        </div>
+
+        <div>
         <p>Wait for eveyone to join the room before starting the game</p>
         <button onClick={startTimerFunction}> Start The Game</button><br/>
+        </div>
         
         </div>
     );
