@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import Peer from "simple-peer";
 import styled from "styled-components";
-import axios from 'axios';
 
 const Container = styled.div`
     padding: 20px;
@@ -54,6 +53,7 @@ const Room = (props) => {
     const [counter, setCounter] = useState(normalTalkCounter);
     const [startTimer, setStartTimer] = useState(false);
     const [userNumber, setUserNumber] = useState();
+    const [isMafia, setIsMafia] = useState();
     const userNum = useRef();
     const socketRef = useRef();
     const userVideo = useRef();
@@ -71,10 +71,16 @@ const Room = (props) => {
             socketRef.current.on("all users", users => {
                 const peers = [];
                 users.forEach(user => {
+                    
+                    // check if they are mafia
                     setUserNumber(user.number)
+                    if(user.id === socketRef.current.id && user.isMafia)setIsMafia("Mafia")
+                    else setIsMafia("Civilian")
+
+
                     userNum.current = user.number
                     if(user.id !== socketRef.current.id){
-                    const peer = createPeer(user.id, socketRef.current.id, stream, user);
+                    const peer = createPeer(user.id, socketRef.current.id, stream);
                     peersRef.current.push({
                         peerID: user.id,
                         peer,
@@ -183,9 +189,10 @@ const Room = (props) => {
                 );
             })}
         </Container>
-        <p> number is {userNumber}</p>
+        <p> Number is {userNumber}</p><br></br>
+        <p> You are a {isMafia} </p>
         </div>
-
+        
         <div>
         <p>Wait for eveyone to join the room before starting the game</p>
         <button onClick={startTimerFunction}> Start The Game</button><br/>
