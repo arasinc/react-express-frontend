@@ -54,7 +54,6 @@ app.post("/getData", function(req, res) {
             i++;
         }
     }
-    
 })
 
 

@@ -14,7 +14,7 @@ const CreateRoom = (props) => {
         }
         props.history.push(`/room/${id}`);
         axios
-        .post('http://localhost:8000/getData', data)
+        .post('http://https://the-wolf-of-mafia.herokuapp.com//getData', data)
         .then(() => console.log('enter room'))
         .catch(err => {
             console.error(err);
