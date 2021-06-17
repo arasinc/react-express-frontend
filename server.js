@@ -15,12 +15,20 @@ app.use(express.json());
 app.use(express.urlencoded());
 
 const users = [];
-const users_in_each_room = {}
+const users_in_each_room = {};
 const socketToRoom = {};
+const group = [{name: "Mafia"}, {name: "civilian"}];
+
+// Figuring out mafia members
+const chooseNumberOfMafia = {7:1, 8:2, 9:2, 10:3};
+var numberOfMafia = 1;
+var randomNumForMafia = [];
+var isMafia = false;
 
 //defualt room capacity to 4
 var roomCapacity = 4;
 var timer_duration = 0;
+
 
 // Number each user when they enter the room 
 var user_number = 1;
@@ -32,13 +40,23 @@ app.use(
   );
 
 app.post("/getData", function(req, res) {
+    randomNumForMafia = []
     roomCapacity = parseInt(req.body.roomCapacity);
+    numberOfMafia = findNumberOfMafia();
+    console.log("number of mafia is: ", numberOfMafia);
 
+    // Choose roles for users randomly 
+    var i = 0;
+    while(i < numberOfMafia){
+        var randNumber = Math.floor(Math.random() * roomCapacity + 1);
+        if(!randomNumForMafia.includes(randNumber)){
+            randomNumForMafia.push(randNumber);
+            i++;
+        }
+    }
+    
 })
 
-app.get("/getUsers", function(req, res) {
-    roomCapacity = parseInt(req.body.roomCapacity);
-})
 
 io.on('connection', socket => {
     socket.on("join room", roomID => {
@@ -49,16 +67,27 @@ io.on('connection', socket => {
                 return;
             }
             users_in_each_room[roomID].push(socket.id);
-            var user = {id : socket.id, roomId: roomID, number: user_number};
+            
+            if(randomNumForMafia.includes(user_number)){
+                isMafia = true;
+            }else{
+                isMafia = false;
+            }
+            var user = {id : socket.id, roomId: roomID, number: user_number, isMafia: isMafia};
             users.push(user)
             user_number += 1; 
         } else {
             users_in_each_room[roomID] = [socket.id];
             // Add player number
             user_number = 1;
-            var user = {id : socket.id, roomId: roomID, number: user_number};
+            if(randomNumForMafia.includes(user_number)){
+                isMafia = true;
+            }else{
+                isMafia = false;
+            }
+            var user = {id : socket.id, roomId: roomID, number: user_number, isMafia: isMafia};
             users.push(user)
-            user_number += 1; 
+            user_number += 1;
         }
         
         socketToRoom[socket.id] = roomID;
@@ -107,6 +136,20 @@ io.on('connection', socket => {
     })
 });
 
+// Function to find the number of Mafia
+function findNumberOfMafia() {
+    for(var key in chooseNumberOfMafia){
+        if(roomCapacity === parseInt(key)){
+            console.log('we enter here with choose: ', chooseNumberOfMafia[key])
+            return chooseNumberOfMafia[key];
+        }
+        // else if(roomCapacity < 7){
+    }
+
+    return 1
+}
+
+// Function to start the game
 function startTimer(payload, io){
     var temp_users = users_in_each_room[payload.roomId]
     var countD_down_timer = setInterval(function(){
@@ -115,7 +158,6 @@ function startTimer(payload, io){
             if(temp_users.length <= 0 ){
                 io.emit("start timer", {user_to_speak: "end"})
                 clearInterval(countD_down_timer)
-                
             }
             else{
                 var temp_user = temp_users.pop()
