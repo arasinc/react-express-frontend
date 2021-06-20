@@ -19,7 +19,6 @@ const StyledVideo = styled.video`
 `;
 
 const Video = (props) => {
-    console.log("props aree: ", props)
     const ref = useRef();
     const user = props.user
     useEffect(() => {
@@ -50,6 +49,7 @@ const Room = (props) => {
     // const defendingCounter = 120;
     const [peers, setPeers] = useState([]);
     const [videoOffOrOn, setVideoOffOrOn] = useState(true);
+    const [audioOffOrOn, setAudioOffOrOn] = useState(true)
     const [counter, setCounter] = useState(normalTalkCounter);
     const [startTimer, setStartTimer] = useState(false);
     const [userNumber, setUserNumber] = useState();
@@ -77,7 +77,6 @@ const Room = (props) => {
                     if(user.id === socketRef.current.id && user.isMafia)setIsMafia("Mafia")
                     else setIsMafia("Civilian")
 
-
                     userNum.current = user.number
                     if(user.id !== socketRef.current.id){
                     const peer = createPeer(user.id, socketRef.current.id, stream);
@@ -89,7 +88,6 @@ const Room = (props) => {
                     peers.push({peer: peer, user: user});
                   }
                 })
-                console.log("all user peer is: ", peers)
                 setPeers(peers);
             });
 
@@ -99,7 +97,6 @@ const Room = (props) => {
                     peerID: payload.callerID,
                     peer,
                 });
-                console.log("user is: ", payload.user)
                 setPeers(prePeer => [...prePeer, {peer:peer, user:payload.user}]);
             });
 
@@ -107,41 +104,50 @@ const Room = (props) => {
                 const item = peersRef.current.find(p => p.peerID === payload.id);
                 item.peer.signal(payload.signal);
             });
-            socketRef.current.on('start timer', payload => {
-                console.log("the socketref current is: " , socketRef.current.id)
-                console.log("the payload id is: ",payload.user_to_speak )
-                if(socketRef.current.id === payload.user_to_speak || payload.user_to_speak === "end"){
-                    setVideoOffOrOn(false)
+            socketRef.current.on('first day timer', payload => {
+                if(socketRef.current.id === payload.user_to_speak){
+                    setAudioOffOrOn(false)
                 }
                 else{
-                    setVideoOffOrOn(true)
+                    setAudioOffOrOn(true)
+                }
+            })
+            socketRef.current.on('first day timer end', payload => {
+                console.log("first day ends")
+                setAudioOffOrOn(false)
+                setVideoOffOrOn(false)
+                // First day ends and first night begins
+                var obj = {roomId: roomID}
+                socketRef.current.emit("first night timer", obj)
+            })
+
+            socketRef.current.on('first night timer end', payload =>{
+                console.log("first night ended")
+                setVideoOffOrOn(true)
+                setAudioOffOrOn(true)
+            })
+
+            socketRef.current.on('wake up mafia first day', payload => {
+                console.log("mafia payload is: ", payload);
+                for(var mafia of payload.mafia){
+                    console.log("index of payload is: ", mafia)
+                    if(mafia.id === socketRef.current.id){
+                        setVideoOffOrOn(true)
+                    }
                 }
             })
         });
-        
     }, []);
     useEffect(()=> {
         if(userVideo.current.srcObject !== null){
             userVideo.current.srcObject.getTracks()[1].enabled = videoOffOrOn;
+            userVideo.current.srcObject.getTracks()[0].enabled = videoOffOrOn;
         }
     }, [videoOffOrOn])
     
-    // commenting the frontend timer for now. maybe will need it later
-    // // Timer 
-    // useEffect(() => {
-    //     if(startTimer){
-    //         if ( counter > 0 ){
-    //             setTimeout(() => setCounter(counter - 1), 1000)
-    //         }
-    //         else {
-    //             setCounter(normalTalkCounter)
-    //         }
-    //     }
-    //   }, [counter, startTimer]);
-
     function startTimerFunction () {
 
-        var obj = {timer: normalTalkCounter, roomId: roomID}
+        var obj = {roomId: roomID}
         socketRef.current.emit('timer', obj);
         setCounter(normalTalkCounter)
         setStartTimer(true)
@@ -173,7 +179,6 @@ const Room = (props) => {
         })
 
         peer.signal(incomingSignal);
-
         return peer;
     }
 
@@ -183,12 +188,12 @@ const Room = (props) => {
         <Container>
             <StyledVideo muted ref={userVideo} autoPlay playsInline />
             {peers.map((peer, index) => {
-                console.log("peers before going are " , peer)
                 return (
                     <Video key={index} peer={peer.peer} user={peer.user}  />
                 );
             })}
         </Container>
+        <p> muted is: {audioOffOrOn ? "not muted" : "Muted"}</p>
         <p> Number is {userNumber}</p><br></br>
         <p> You are a {isMafia} </p>
         </div>

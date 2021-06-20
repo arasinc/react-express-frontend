@@ -27,8 +27,12 @@ var isMafia = false;
 
 //defualt room capacity to 4
 var roomCapacity = 4;
-var timer_duration = 0;
 
+// Timer Durations
+var firstDayTimerDuration = 2;
+var firstNightTimerDuration = 10;
+var normalDayTimerDuration = 0;
+var normalNightTimerDuration = 0;
 
 // Number each user when they enter the room 
 var user_number = 1;
@@ -56,7 +60,6 @@ app.post("/getData", function(req, res) {
     }
 })
 
-
 io.on('connection', socket => {
     socket.on("join room", roomID => {
         if (users_in_each_room[roomID]) {
@@ -65,8 +68,9 @@ io.on('connection', socket => {
                 socket.emit("room full");
                 return;
             }
+
             users_in_each_room[roomID].push(socket.id);
-            
+
             if(randomNumForMafia.includes(user_number)){
                 isMafia = true;
             }else{
@@ -93,21 +97,18 @@ io.on('connection', socket => {
         var send_users = users.filter(function(el){
             return el.roomId === roomID;
         })
-        console.log("users in room after: ", send_users)
         socket.emit("all users", send_users);
     });
 
-
     socket.on("sending signal", payload => {
-        console.log("the caller id is: ", payload.callerID)
-        var temp_user = {};
+        var tempUser = {};
         for(const user in users){
 
             if(users[user].id === payload.callerID){
-                temp_user = users[user]
+                tempUser = users[user]
             }
         }
-        io.to(payload.userToSignal).emit('user joined', { signal: payload.signal, callerID: payload.callerID, user: temp_user});
+        io.to(payload.userToSignal).emit('user joined', { signal: payload.signal, callerID: payload.callerID, user: tempUser});
     });
 
     socket.on("returning signal", payload => {
@@ -128,12 +129,51 @@ io.on('connection', socket => {
     })
 
     socket.on('timer', payload => {
-        timer_duration = payload.timer
-        startTimer(payload, io)
-        console.log("useres are: ", users)
-        
+        firstDayTimer(payload, io)
+    })
+
+    socket.on('first night timer', payload => {
+        firstNightTimer(payload, io)
     })
 });
+
+function firstNightTimer(payload, io) {
+    var mafiaUsers = users.filter(user => user.isMafia === true && user.roomId === payload.roomId)
+    var tempTimer = firstNightTimerDuration
+    io.emit("wake up mafia first day", {mafia:mafiaUsers})
+    var countD_down_timer = setInterval(function(){
+        if (tempTimer <= 0) {
+            io.emit('first night timer end')
+            clearInterval(countD_down_timer)
+            
+        }else{
+            tempTimer -= 1;
+        }
+    }, 1000);
+    
+}
+
+// Function to start the game
+function firstDayTimer(payload, io){
+    var tempUsers = [...users_in_each_room[payload.roomId]]
+    var tempTimer = firstDayTimerDuration
+    var countD_down_timer = setInterval(function(){
+        if (tempTimer <= 0) {
+            if(tempUsers.length <= 0 ){
+                io.emit("first day timer end")
+                clearInterval(countD_down_timer)
+            }
+            else{
+                var tempUser = tempUsers.pop()
+                tempTimer = firstDayTimerDuration
+                io.emit("first day timer", {user_to_speak: tempUser})
+            }
+        }else{
+            tempTimer -= 1;
+        }
+    }, 1000);
+    
+}
 
 // Function to find the number of Mafia
 function findNumberOfMafia() {
@@ -142,32 +182,8 @@ function findNumberOfMafia() {
             console.log('we enter here with choose: ', chooseNumberOfMafia[key])
             return chooseNumberOfMafia[key];
         }
-        // else if(roomCapacity < 7){
     }
-
     return 1
-}
-
-// Function to start the game
-function startTimer(payload, io){
-    var temp_users = users_in_each_room[payload.roomId]
-    var countD_down_timer = setInterval(function(){
-        if (timer_duration <= 0) {
-            console.log("user is: ", temp_users)
-            if(temp_users.length <= 0 ){
-                io.emit("start timer", {user_to_speak: "end"})
-                clearInterval(countD_down_timer)
-            }
-            else{
-                var temp_user = temp_users.pop()
-                timer_duration = payload.timer
-                io.emit("start timer", {user_to_speak: temp_user})
-            }
-            
-        }else{
-            timer_duration -= 1;
-        }
-    }, 1000);
 }
 
 if (process.env.PROD){
