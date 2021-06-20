@@ -77,7 +77,6 @@ const Room = (props) => {
                     if(user.id === socketRef.current.id && user.isMafia)setIsMafia("Mafia")
                     else setIsMafia("Civilian")
 
-
                     userNum.current = user.number
                     if(user.id !== socketRef.current.id){
                     const peer = createPeer(user.id, socketRef.current.id, stream);
@@ -119,7 +118,6 @@ const Room = (props) => {
                 setVideoOffOrOn(false)
                 // First day ends and first night begins
                 var obj = {roomId: roomID}
-                console.log("enter here")
                 socketRef.current.emit("first night timer", obj)
             })
 
@@ -138,10 +136,7 @@ const Room = (props) => {
                     }
                 }
             })
-
-
         });
-        
     }, []);
     useEffect(()=> {
         if(userVideo.current.srcObject !== null){
@@ -150,7 +145,6 @@ const Room = (props) => {
         }
     }, [videoOffOrOn])
     
-
     function startTimerFunction () {
 
         var obj = {roomId: roomID}
@@ -185,7 +179,6 @@ const Room = (props) => {
         })
 
         peer.signal(incomingSignal);
-
         return peer;
     }
 

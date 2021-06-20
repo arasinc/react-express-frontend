@@ -60,7 +60,6 @@ app.post("/getData", function(req, res) {
     }
 })
 
-
 io.on('connection', socket => {
     socket.on("join room", roomID => {
         if (users_in_each_room[roomID]) {
@@ -101,7 +100,6 @@ io.on('connection', socket => {
         socket.emit("all users", send_users);
     });
 
-
     socket.on("sending signal", payload => {
         var tempUser = {};
         for(const user in users){
@@ -141,8 +139,6 @@ io.on('connection', socket => {
 
 function firstNightTimer(payload, io) {
     var mafiaUsers = users.filter(user => user.isMafia === true && user.roomId === payload.roomId)
-
-    console.log('mafia is', mafiaUsers)
     var tempTimer = firstNightTimerDuration
     io.emit("wake up mafia first day", {mafia:mafiaUsers})
     var countD_down_timer = setInterval(function(){
@@ -160,12 +156,10 @@ function firstNightTimer(payload, io) {
 // Function to start the game
 function firstDayTimer(payload, io){
     var tempUsers = [...users_in_each_room[payload.roomId]]
-
     var tempTimer = firstDayTimerDuration
     var countD_down_timer = setInterval(function(){
         if (tempTimer <= 0) {
             if(tempUsers.length <= 0 ){
-                console.log("went to end")
                 io.emit("first day timer end")
                 clearInterval(countD_down_timer)
             }
@@ -188,7 +182,6 @@ function findNumberOfMafia() {
             console.log('we enter here with choose: ', chooseNumberOfMafia[key])
             return chooseNumberOfMafia[key];
         }
-        // else if(roomCapacity < 7){
     }
     return 1
 }

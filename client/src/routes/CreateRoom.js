@@ -16,7 +16,7 @@ const CreateRoom = (props) => {
         }
         props.history.push(`/room/${id}`);
         axios
-        .post(DEV_URL +'getData', data)
+        .post(PROD_URL +'getData', data)
         .then(() => console.log('enter room'))
         .catch(err => {
             console.error(err);
