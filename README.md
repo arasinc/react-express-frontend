@@ -14,3 +14,7 @@ $ yarn start
 ### Applications to download
 1. visual studio code
 2. git bash for windows users
+
+## Env Run
+If you are running the code on local host make sure to choose the "DEV_ENV" in createroom.js
+If you are running the code on prod then choose the "PROD_ENV" if you don't then you will get errors

@@ -106,10 +106,10 @@ const Room = (props) => {
             });
             socketRef.current.on('first day timer', payload => {
                 if(socketRef.current.id === payload.user_to_speak){
-                    setAudioOffOrOn(false)
+                    setAudioOffOrOn(true)
                 }
                 else{
-                    setAudioOffOrOn(true)
+                    setAudioOffOrOn(false)
                 }
             })
             socketRef.current.on('first day timer end', payload => {

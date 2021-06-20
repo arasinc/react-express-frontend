@@ -62,6 +62,11 @@ app.post("/getData", function(req, res) {
 
 io.on('connection', socket => {
     socket.on("join room", roomID => {
+        if(randomNumForMafia.includes(user_number)){
+            isMafia = true;
+        }else{
+            isMafia = false;
+        }
         if (users_in_each_room[roomID]) {
             const length = users_in_each_room[roomID].length;
             if (length === roomCapacity) {
@@ -70,24 +75,14 @@ io.on('connection', socket => {
             }
 
             users_in_each_room[roomID].push(socket.id);
-
-            if(randomNumForMafia.includes(user_number)){
-                isMafia = true;
-            }else{
-                isMafia = false;
-            }
+            // Randomly choosing Mafia 
             var user = {id : socket.id, roomId: roomID, number: user_number, isMafia: isMafia};
             users.push(user)
             user_number += 1; 
         } else {
             users_in_each_room[roomID] = [socket.id];
-            // Add player number
+            // Add player number and choose mafia
             user_number = 1;
-            if(randomNumForMafia.includes(user_number)){
-                isMafia = true;
-            }else{
-                isMafia = false;
-            }
             var user = {id : socket.id, roomId: roomID, number: user_number, isMafia: isMafia};
             users.push(user)
             user_number += 1;
