@@ -53,6 +53,7 @@ const Room = (props) => {
     const [counter, setCounter] = useState(normalTalkCounter);
     const [startTimer, setStartTimer] = useState(false);
     const [userNumber, setUserNumber] = useState();
+    const [isRoomCreator, setIsRoomCreator] = useState(false)
     const [isMafia, setIsMafia] = useState();
     const userNum = useRef();
     const socketRef = useRef();
@@ -71,7 +72,10 @@ const Room = (props) => {
             socketRef.current.on("all users", users => {
                 const peers = [];
                 users.forEach(user => {
-                    
+                    //check if it is a cretor if yes let them have access to some stuff
+                    console.log("user issss: ", user)
+                    if (user.isRoomCreator) setIsRoomCreator(true)
+                    else setIsRoomCreator(false)
                     // check if they are mafia
                     setUserNumber(user.number)
                     if(user.id === socketRef.current.id && user.isMafia)setIsMafia("Mafia")
@@ -200,7 +204,8 @@ const Room = (props) => {
         
         <div>
         <p>Wait for eveyone to join the room before starting the game</p>
-        <button onClick={startTimerFunction}> Start The Game</button><br/>
+        {isRoomCreator ? <button onClick={startTimerFunction}> Start The Game</button> : ""}
+        
         </div>
         
         </div>

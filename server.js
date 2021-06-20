@@ -24,6 +24,7 @@ const chooseNumberOfMafia = {7:1, 8:2, 9:2, 10:3};
 var numberOfMafia = 1;
 var randomNumForMafia = [];
 var isMafia = false;
+var isRoomCreator = false;
 
 //defualt room capacity to 4
 var roomCapacity = 4;
@@ -68,6 +69,7 @@ io.on('connection', socket => {
             isMafia = false;
         }
         if (users_in_each_room[roomID]) {
+            isRoomCreator = false
             const length = users_in_each_room[roomID].length;
             if (length === roomCapacity) {
                 socket.emit("room full");
@@ -76,14 +78,15 @@ io.on('connection', socket => {
 
             users_in_each_room[roomID].push(socket.id);
             // Randomly choosing Mafia 
-            var user = {id : socket.id, roomId: roomID, number: user_number, isMafia: isMafia};
+            var user = {id : socket.id, roomId: roomID, number: user_number, isMafia: isMafia, isRoomCreator: isRoomCreator};
             users.push(user)
             user_number += 1; 
         } else {
             users_in_each_room[roomID] = [socket.id];
+            isRoomCreator = true
             // Add player number and choose mafia
             user_number = 1;
-            var user = {id : socket.id, roomId: roomID, number: user_number, isMafia: isMafia};
+            var user = {id : socket.id, roomId: roomID, number: user_number, isMafia: isMafia, isRoomCreator:isRoomCreator};
             users.push(user)
             user_number += 1;
         }
