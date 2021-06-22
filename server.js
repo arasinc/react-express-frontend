@@ -23,6 +23,7 @@ const group = [{name: "Mafia"}, {name: "civilian"}];
 const chooseNumberOfMafia = {7:1, 8:2, 9:2, 10:3};
 var numberOfMafia = 1;
 var randomNumForMafia = [];
+
 var isMafia = false;
 var isRoomCreator = false;
 
@@ -31,7 +32,7 @@ var roomCapacity = 4;
 
 // Timer Durations
 var firstDayTimerDuration = 2;
-var firstNightTimerDuration = 10;
+var firstNightTimerDuration = 5;
 var normalDayTimerDuration = 0;
 var normalNightTimerDuration = 0;
 
@@ -59,6 +60,7 @@ app.post("/getData", function(req, res) {
             i++;
         }
     }
+    console.log("random num mafia is: ", randomNumForMafia)
 })
 
 io.on('connection', socket => {
@@ -181,7 +183,7 @@ function findNumberOfMafia() {
             return chooseNumberOfMafia[key];
         }
     }
-    return 1
+    return 2;
 }
 
 if (process.env.PROD){

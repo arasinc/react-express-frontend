@@ -4,6 +4,7 @@ import axios from 'axios';
 
 const DEV_URL = "http://localhost:8000/"
 const PROD_URL = "https://the-wolf-of-mafia.herokuapp.com/"
+
 const CreateRoom = (props) => {
     const [roomCapacity, setRoomCapacity] = useState(0);
 
@@ -16,7 +17,7 @@ const CreateRoom = (props) => {
         }
         props.history.push(`/room/${id}`);
         axios
-        .post(PROD_URL +'getData', data)
+        .post(DEV_URL +'getData', data)
         .then(() => console.log('enter room'))
         .catch(err => {
             console.error(err);
