@@ -15,18 +15,35 @@ const Container = styled.div`
 const StyledVideo = styled.video`
     height: 200px;
     width: 300px;
-    padding: 20px;
+    padding: 10px;
 `;
 
 const Video = (props) => {
     const ref = useRef();
-    const user = props.user
+    const user = props.user;
+    console.log("props is: ", props)
     useEffect(() => {
         props.peer.on("stream", stream => {
             ref.current.srcObject = stream;
-            
         })
     }, []);
+
+    useEffect(() => {
+        console.log("props.gamestate is: ", props.gameState)
+        if(props.gameState === "wake up mafia first day"){
+            if(props.currentUserRole === "Mafia" && user.isMafia){
+                ref.current.srcObject.getTracks()[1].enabled = true;
+            }
+            else{
+                ref.current.srcObject.getTracks()[1].enabled = false;
+            }
+        }
+        
+        if(props.gameState === "first night timer end"){
+            ref.current.srcObject.getTracks()[1].enabled = true;
+        }
+        
+    }, [props])
 
     return (
         <>
@@ -53,14 +70,15 @@ const Room = (props) => {
     const [counter, setCounter] = useState(normalTalkCounter);
     const [startTimer, setStartTimer] = useState(false);
     const [userNumber, setUserNumber] = useState();
-    const [isRoomCreator, setIsRoomCreator] = useState(false)
+    const [isRoomCreator, setIsRoomCreator] = useState(false);
     const [isMafia, setIsMafia] = useState();
+    const [gameState, setGameState] = useState("before game start");
     const userNum = useRef();
     const socketRef = useRef();
     const userVideo = useRef();
     const peersRef = useRef([]);
     const roomID = props.match.params.roomID;
-    var users = []
+    var users = [];
 
     
     useEffect(() => {
@@ -73,7 +91,6 @@ const Room = (props) => {
                 const peers = [];
                 users.forEach(user => {
                     //check if it is a cretor if yes let them have access to some stuff
-                    console.log("user issss: ", user)
                     if (user.isRoomCreator) setIsRoomCreator(true)
                     else setIsRoomCreator(false)
                     // check if they are mafia
@@ -108,7 +125,9 @@ const Room = (props) => {
                 const item = peersRef.current.find(p => p.peerID === payload.id);
                 item.peer.signal(payload.signal);
             });
+
             socketRef.current.on('first day timer', payload => {
+                setGameState("first day timer")
                 if(socketRef.current.id === payload.user_to_speak){
                     setAudioOffOrOn(true)
                 }
@@ -116,36 +135,31 @@ const Room = (props) => {
                     setAudioOffOrOn(false)
                 }
             })
+
             socketRef.current.on('first day timer end', payload => {
-                console.log("first day ends")
-                setAudioOffOrOn(false)
-                setVideoOffOrOn(false)
+                setGameState('first day timer end')
+                console.log("first day ends");
+                setAudioOffOrOn(false);
+                setVideoOffOrOn(false);
                 // First day ends and first night begins
-                var obj = {roomId: roomID}
-                socketRef.current.emit("first night timer", obj)
+                var obj = {roomId: roomID};
+                socketRef.current.emit("first night timer", obj);
             })
 
             socketRef.current.on('first night timer end', payload =>{
-                console.log("first night ended")
-                setVideoOffOrOn(true)
-                setAudioOffOrOn(true)
+                setGameState("first night timer end")
             })
 
             socketRef.current.on('wake up mafia first day', payload => {
-                console.log("mafia payload is: ", payload);
-                for(var mafia of payload.mafia){
-                    console.log("index of payload is: ", mafia)
-                    if(mafia.id === socketRef.current.id){
-                        setVideoOffOrOn(true)
-                    }
-                }
+                setGameState("wake up mafia first day");
+                setVideoOffOrOn(true)
             })
         });
     }, []);
     useEffect(()=> {
         if(userVideo.current.srcObject !== null){
             userVideo.current.srcObject.getTracks()[1].enabled = videoOffOrOn;
-            userVideo.current.srcObject.getTracks()[0].enabled = videoOffOrOn;
+            userVideo.current.srcObject.getTracks()[0].enabled = audioOffOrOn;
         }
     }, [videoOffOrOn])
     
@@ -193,7 +207,7 @@ const Room = (props) => {
             <StyledVideo muted ref={userVideo} autoPlay playsInline />
             {peers.map((peer, index) => {
                 return (
-                    <Video key={index} peer={peer.peer} user={peer.user}  />
+                    <Video key={index} peer={peer.peer} user={peer.user} currentUserRole={isMafia} gameState={gameState} />
                 );
             })}
         </Container>
