@@ -31,7 +31,7 @@ var isRoomCreator = false;
 var roomCapacity = 4;
 
 // Timer Durations
-var firstDayTimerDuration = 2;
+var firstDayTimerDuration = 5;
 var firstNightTimerDuration = 5;
 var normalDayTimerDuration = 0;
 var normalNightTimerDuration = 0;
@@ -135,7 +135,29 @@ io.on('connection', socket => {
     socket.on('first night timer', payload => {
         firstNightTimer(payload, io)
     })
+
 });
+
+function normalDayTimer(payload, io){
+    var tempUsers = [...users_in_each_room[payload.roomId]]
+    var tempTimer = firstDayTimerDuration
+    var countD_down_timer = setInterval(function(){
+        if (tempTimer <= 0) {
+            if(tempUsers.length <= 0 ){
+                io.emit("normal day timer end")
+                clearInterval(countD_down_timer)
+            }
+            else{
+                // people talk 
+                var tempUser = tempUsers.pop()
+                tempTimer = firstDayTimerDuration
+                io.emit("normal day timer", {user_to_speak: tempUser})
+            }
+        }else{
+            tempTimer -= 1;
+        }
+    }, 1000);
+}
 
 function firstNightTimer(payload, io) {
     var mafiaUsers = users.filter(user => user.isMafia === true && user.roomId === payload.roomId)
@@ -144,6 +166,7 @@ function firstNightTimer(payload, io) {
     var countD_down_timer = setInterval(function(){
         if (tempTimer <= 0) {
             io.emit('first night timer end')
+            normalDayTimer(payload,io)
             clearInterval(countD_down_timer)
             
         }else{

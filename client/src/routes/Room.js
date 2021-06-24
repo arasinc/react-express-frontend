@@ -136,6 +136,16 @@ const Room = (props) => {
                 }
             })
 
+            socketRef.current.on('normal day timer', payload => {
+                setGameState("normal day timer")
+                if(socketRef.current.id === payload.user_to_speak){
+                    setAudioOffOrOn(true)
+                }
+                else{
+                    setAudioOffOrOn(false)
+                }
+            })
+            
             socketRef.current.on('first day timer end', payload => {
                 setGameState('first day timer end')
                 console.log("first day ends");
@@ -161,7 +171,7 @@ const Room = (props) => {
             userVideo.current.srcObject.getTracks()[1].enabled = videoOffOrOn;
             userVideo.current.srcObject.getTracks()[0].enabled = audioOffOrOn;
         }
-    }, [videoOffOrOn])
+    }, [videoOffOrOn, audioOffOrOn])
     
     function startTimerFunction () {
 
