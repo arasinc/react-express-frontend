@@ -162,7 +162,7 @@ function normalDayTimer(payload, io){
 function firstNightTimer(payload, io) {
     var mafiaUsers = users.filter(user => user.isMafia === true && user.roomId === payload.roomId)
     var tempTimer = firstNightTimerDuration
-    io.emit("wake up mafia first day", {mafia:mafiaUsers})
+    io.emit("wake up mafia first night", {mafia:mafiaUsers})
     var countD_down_timer = setInterval(function(){
         if (tempTimer <= 0) {
             io.emit('first night timer end')

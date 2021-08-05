@@ -30,7 +30,7 @@ const Video = (props) => {
 
     useEffect(() => {
         console.log("props.gamestate is: ", props.gameState)
-        if(props.gameState === "wake up mafia first day"){
+        if(props.gameState === "wake up mafia first night"){
             if(props.currentUserRole === "Mafia" && user.isMafia){
                 ref.current.srcObject.getTracks()[1].enabled = true;
             }
@@ -73,6 +73,7 @@ const Room = (props) => {
     const [isRoomCreator, setIsRoomCreator] = useState(false);
     const [isMafia, setIsMafia] = useState();
     const [gameState, setGameState] = useState("before game start");
+    const [personTalking, setPersonTalking] = useState();
     const userNum = useRef();
     const socketRef = useRef();
     const userVideo = useRef();
@@ -160,8 +161,8 @@ const Room = (props) => {
                 setGameState("first night timer end")
             })
 
-            socketRef.current.on('wake up mafia first day', payload => {
-                setGameState("wake up mafia first day");
+            socketRef.current.on('wake up mafia first night', payload => {
+                setGameState("wake up mafia first night");
                 setVideoOffOrOn(true)
             })
         });
@@ -212,25 +213,28 @@ const Room = (props) => {
 
     return (
         <div>
-        <div>
-        <Container>
-            <StyledVideo muted ref={userVideo} autoPlay playsInline />
-            {peers.map((peer, index) => {
-                return (
-                    <Video key={index} peer={peer.peer} user={peer.user} currentUserRole={isMafia} gameState={gameState} />
-                );
-            })}
-        </Container>
-        <p> muted is: {audioOffOrOn ? "not muted" : "Muted"}</p>
-        <p> Number is {userNumber}</p><br></br>
-        <p> You are a {isMafia} </p>
-        </div>
+            <div>
+                <h3>Game stat is: {gameState}</h3>
+            </div>
+            <div>
+            <Container>
+                <StyledVideo muted ref={userVideo} autoPlay playsInline />
+                {peers.map((peer, index) => {
+                    return (
+                        <Video key={index} peer={peer.peer} user={peer.user} currentUserRole={isMafia} gameState={gameState} />
+                    );
+                })}
+            </Container>
+            <p> muted is: {audioOffOrOn ? "not muted" : "Muted"}</p>
+            <p> Number is {userNumber}</p><br></br>
+            <p> You are a {isMafia} </p>
+            </div>
         
-        <div>
-        <p>Wait for eveyone to join the room before starting the game</p>
-        {isRoomCreator ? <button onClick={startTimerFunction}> Start The Game</button> : ""}
-        
-        </div>
+            <div>
+            <p>Wait for eveyone to join the room before starting the game</p>
+            {isRoomCreator ? <button onClick={startTimerFunction}> Start The Game</button> : ""}
+            
+            </div>
         
         </div>
     );
