@@ -3,6 +3,10 @@ go to the server directory and run the following commands:
 1. yarn add nodemon
 2. yarn add dotenv
 
+use cd client to go to the client directory
+1. yarn add react-bootstrap bootstrap@5.0.2
+use cd .. to go to the main directory
+
 ##To Start in Dev mode
 Go to the main directory (not the client one. The server one)
 ```
